@@ -1,0 +1,37 @@
+' Create an instance of the WMI service
+Set objWMIService = GetObject("winmgmts:\\.\root\cimv2")
+
+' Query for the Win32_OperatingSystem class to get the LastBootUpTime
+Set colOperatingSystems = objWMIService.ExecQuery("SELECT * FROM Win32_OperatingSystem")
+
+' Iterate through the result (should be only one)
+For Each objOperatingSystem in colOperatingSystems
+    ' Get the LastBootUpTime
+    LastBootUpTime = objOperatingSystem.LastBootUpTime
+
+    ' Calculate the uptime
+    dtmLastBootUpTime = WMIDateStringToDate(LastBootUpTime)
+    dtmCurrentTime = Now
+    dtmUptime = dtmCurrentTime - dtmLastBootUpTime
+
+    ' Display the uptime
+    WScript.Echo "System Uptime: " & FormatTimeSpan(dtmUptime)
+Next
+
+' Function to convert WMI date to a date object
+Function WMIDateStringToDate(dtmDate)
+    WMIDateStringToDate = CDate(Mid(dtmDate, 5, 2) & "/" & _
+        Mid(dtmDate, 7, 2) & "/" & Left(dtmDate, 4) & " " & _
+        Mid (dtmDate, 9, 2) & ":" & Mid(dtmDate, 11, 2) & ":" & Mid(dtmDate,13, 2))
+End Function
+
+' Function to format the time span into days, hours, minutes, and seconds
+Function FormatTimeSpan(dtmTimeSpan)
+    Dim intDays, intHours, intMinutes, intSeconds
+    intDays = Int(dtmTimeSpan)
+    dtmTimeSpan = dtmTimeSpan - intDays
+    intHours = Hour(dtmTimeSpan)
+    intMinutes = Minute(dtmTimeSpan)
+    intSeconds = Second(dtmTimeSpan)
+    FormatTimeSpan = intDays & " days, " & intHours & " hours, " & intMinutes & " minutes, " & intSeconds & " seconds"
+End Function
